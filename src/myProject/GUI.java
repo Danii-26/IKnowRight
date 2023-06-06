@@ -1,5 +1,8 @@
 package myProject;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -7,34 +10,52 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.Vector;
 
-/**
- * This class is used for ...
- * @autor Daniel Arias Castrillón 2222205 & Venus Juliana Paipilla 2177134
- * @version v.0.0.1 date:30/05/2023
- */
-public class GUI{
+public class GUI {
     private static final int tiempoDeJuego = 5000; // Tiempo de cada palabra
     private static final int tiempoDeRespuesta = 7000; //Tiempo de respuesta
 
     private static final List<String> palabras = new Vector<>(); //Lista de palabras
-    private static final Random random = new Random();
+    private static final Random random = new Random(); //Para elegir una palabra al azar
     private static int nivel = 1; // Nivel inicial
 
-    //Reglas tabla de niveles
+    //Reglas tabla de niveles:
     private static final int[] numPalabrasNivel = {10, 20, 25, 30, 35, 40, 50, 60, 70, 100};
     private static final int[] numPalabrasNivelTotal = {20, 40, 50, 60, 70, 80, 100, 120, 140, 200};
     private static final double[] porcentajeAciertosNivel = {0.7, 0.7, 0.75, 0.8, 0.8, 0.85, 0.9, 0.9, 0.95, 1.0};
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         listaPalabras();
 
+        String jugador = "";
+        int nivelGuardado = 0;
+
+        if (existeArchivo("save.txt")) {
+            String[] datosGuardados = getDatosGuardados();
+            if (datosGuardados.length == 2) {
+                jugador = datosGuardados[0];
+                nivelGuardado = Integer.parseInt(datosGuardados[1]);
+            }
+        }
+
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Ingrese su nombre: ");
-        String jugador = scanner.nextLine();
+
+        if (!jugador.isEmpty()){
+            System.out.println("Hola " + jugador + "!");
+
+            System.out.print("¿Quieres continuar desde el nivel guardado (" + nivelGuardado + ")? (S/N): ");
+            String respuesta = scanner.nextLine().toUpperCase();
+            if (respuesta.equals("S")) {
+                nivel = nivelGuardado;
+            }else{
+                jugador = getNuevoJugador(scanner);
+            }
+        }else{
+            jugador = getNuevoJugador(scanner);
+        }
 
         System.out.println("Bienvenido " + jugador + "!");
 
-        boolean continuar = true;
+        boolean continuar = true; //Comienza el juego. Si !continuar, entonces se deja de cumplir el while.
 
         while (continuar) {
             if (nivel > 10) {
@@ -44,7 +65,7 @@ public class GUI{
             System.out.println("----lvl." + nivel + "----");
             play();
 
-            System.out.print("Desea seguir jugando?(S/N): ");
+            System.out.print("Desea seguir jugando? (S/N): ");
             String playNextLevel = scanner.nextLine().toUpperCase();
             if (!playNextLevel.equals("S")) {
                 continuar = false;
@@ -54,8 +75,35 @@ public class GUI{
         }
 
         System.out.println("Game over.");
-
+        guardarJugador(jugador, nivel); //Guarda el nombre y nivel
         scanner.close();
+    }
+
+    private static String getNuevoJugador(Scanner scanner) {
+        System.out.print("Ingrese su nombre: ");
+        return scanner.nextLine();
+    }
+    //Revisa si existe el save.txt
+    private static boolean existeArchivo(String nombreArchivo){
+        return Files.exists(Paths.get(nombreArchivo));
+    }
+
+    //Obtiene los datos de guardado de la anterior partida.
+    private static String[] getDatosGuardados(){
+        try {
+            List<String> lines = Files.readAllLines(Paths.get("save.txt"));
+            if (!lines.isEmpty()) {
+                String jugadorSaved = lines.get(0);
+                String nivelSaved = lines.get(1);
+                String[] datos = new String[2];
+                datos[0] = jugadorSaved.substring(jugadorSaved.indexOf(":") + 2);
+                datos[1] = nivelSaved.substring(nivelSaved.indexOf(":") + 2);
+                return datos;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new String[0];
     }
 
     private static void listaPalabras(){
@@ -67,13 +115,24 @@ public class GUI{
         }
     }
 
+    private static void guardarJugador(String nombre, int nivel){
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("save.txt"))) {
+            writer.write("Nombre: " + nombre + "\n");
+            writer.write("Nivel: " + nivel + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Ocurrió un error al guardar los datos del jugador.");
+        }
+    }
+
+
     private static void play(){
         int numPalabrasMemorizar1 = numPalabrasNivel[nivel - 1];
         int numPalabrasNivelTotal1 = numPalabrasNivelTotal[nivel - 1];
         double porcentajeAciertosNivel1 = porcentajeAciertosNivel[nivel - 1];
 
         Vector<String> secuencia = crearSecuencia(numPalabrasMemorizar1);
-        System.out.println("Memoriza las siguientes palabras:");
+        System.out.println("Memoriza las siguientes palabras: ");
         mostrarSecuencia(secuencia);
 
         tiempoLímite(tiempoDeJuego);
