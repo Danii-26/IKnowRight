@@ -5,10 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
-import java.util.Vector;
+import java.util.*;
 
 public class GUI {
     private static final int tiempoDeJuego = 5000; // Tiempo de cada palabra
@@ -180,16 +177,30 @@ public class GUI {
         }
     }
 
-    private static Vector<String> crearListaPalabras(Vector<String> sequence, int numPalabrasNivelTotal){
-        Vector<String> wordListToGuess = new Vector<>(sequence);
+    private static Vector<String> crearListaPalabras(Vector<String> sequence, int numPalabrasNivelTotal) {
+        Set<String> wordSet = new HashSet<>();
+        Vector<String> wordListToGuess = new Vector<>();
         int remainingWords = numPalabrasNivelTotal - sequence.size();
-        for (int i = 0; i < remainingWords; i++) {
+
+        // Agregar las palabras de la secuencia memorizada al conjunto
+        wordSet.addAll(sequence);
+
+        // Generar palabras aleatorias adicionales hasta alcanzar el número requerido
+        while (wordSet.size() < numPalabrasNivelTotal) {
             int randomIndex = random.nextInt(palabras.size());
             String randomWord = palabras.get(randomIndex);
-            wordListToGuess.add(randomWord);
+            wordSet.add(randomWord);
         }
+
+        // Agregar las palabras del conjunto a la lista de palabras a adivinar
+        wordListToGuess.addAll(wordSet);
+
+        // Mezclar la lista de palabras
+        Collections.shuffle(wordListToGuess);
+
         return wordListToGuess;
     }
+
 
     private static void mostrarLista(Vector<String> wordList){
         for (String word : wordList){
