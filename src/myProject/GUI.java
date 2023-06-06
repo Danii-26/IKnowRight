@@ -7,24 +7,25 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.Vector;
 
-
 /**
  * This class is used for ...
  * @autor Daniel Arias Castrillón 2222205 & Venus Juliana Paipilla 2177134
  * @version v.0.0.1 date:30/05/2023
  */
 public class GUI{
-    private static final int tiempoDeJuego = 5000; //Tiempo de cada palabra
-    private static final int tiempoDeRespuesta = 7000; //Tiempo de respuesta
+    private static final int tiempoDeJuego = 5000; // Tiempo de cada palabra
+    private static final int tiempoDeRespuesta = 7000; // Tiempo de respuesta
 
-    private static final List<String> palabras = new Vector<>(); //Vector de palabras
+    private static final List<String> palabras = new Vector<>(); // Vector de palabras
     private static final Random random = new Random();
     private static int nivel = 1; // Nivel actual
 
-
+    //Reglas tabla de niveles
+    private static final int[] numPalabrasNivel = {10, 20, 25, 30, 35, 40, 50, 60, 70, 100};
+    private static final int[] numPalabrasNivelTotal = {20, 40, 50, 60, 70, 80, 100, 120, 140, 200};
+    private static final double[] porcentajeAciertosNivel = {0.7, 0.7, 0.75, 0.8, 0.8, 0.85, 0.9, 0.9, 0.95, 1.0};
 
     public static void main(String[] args){
-
         listaPalabras();
 
         Scanner scanner = new Scanner(System.in);
@@ -33,11 +34,14 @@ public class GUI{
 
         System.out.println("Bienvenido " + jugador + "!");
 
-
         boolean continuar = true;
 
         while (continuar) {
-            System.out.println("----lvl." + nivel + " ----");
+            if (nivel > 10) {
+                break;
+            }
+
+            System.out.println("----lvl." + nivel + "----");
             play();
 
             System.out.print("Desea seguir jugando?(S/N): ");
@@ -64,18 +68,22 @@ public class GUI{
     }
 
     private static void play(){
-        Vector secuencia = crearSecuencia(nivel);
+        int numPalabrasMemorizar1 = numPalabrasNivel[nivel - 1];
+        int numPalabrasNivelTotal1 = numPalabrasNivelTotal[nivel - 1];
+        double porcentajeAciertosNivel1 = porcentajeAciertosNivel[nivel - 1];
+
+        Vector<String> secuencia = crearSecuencia(numPalabrasMemorizar1);
         System.out.println("Memoriza las siguientes palabras:");
         mostrarSecuencia(secuencia);
 
         tiempoLímite(tiempoDeJuego);
 
-        Vector listaPalabras = crearListaPalabras(secuencia);
+        Vector<String> listaPalabras = crearListaPalabras(secuencia, numPalabrasNivelTotal1);
         System.out.println("\nPalabras a adivinar:");
         mostrarLista(listaPalabras);
 
         int respuestasCorrectas = 0;
-        for (Object word : secuencia) {
+        for (String word : secuencia) {
             System.out.print("\nLa palabra \"" + word + "\" estaba en la lista? (S/N): ");
             String respuesta = getTiempoUsuario(tiempoDeRespuesta);
 
@@ -86,19 +94,20 @@ public class GUI{
             }
         }
 
+        int numAciertosNecesarios = (int) Math.ceil(porcentajeAciertosNivel1 * secuencia.size());
         System.out.println("\nAdivinaste " + respuestasCorrectas + " de " + secuencia.size() + " palabras.");
-        if (respuestasCorrectas == secuencia.size()) {
-            System.out.println("Pasas de nivel nivel.");
+        if (respuestasCorrectas >= numAciertosNecesarios) {
+            System.out.println("Pasas de nivel.");
         } else {
             System.out.println("Has perdido.");
         }
     }
 
-    private static Vector crearSecuencia(int level){
-        Vector sequence = new Vector();
-        for (int i = 0; i < level; i++) {
+    private static Vector<String> crearSecuencia(int numPalabrasMemorizar){
+        Vector<String> sequence = new Vector<>();
+        for (int i = 0; i < numPalabrasMemorizar; i++) {
             int randomIndex = random.nextInt(palabras.size());
-            String word = (String) palabras.get(randomIndex);
+            String word = palabras.get(randomIndex);
             sequence.add(word);
         }
         return sequence;
@@ -112,11 +121,12 @@ public class GUI{
         }
     }
 
-    private static Vector<String> crearListaPalabras(Vector<String> sequence){
+    private static Vector<String> crearListaPalabras(Vector<String> sequence, int numPalabrasNivelTotal){
         Vector<String> wordListToGuess = new Vector<>(sequence);
-        for (String word : sequence){
+        int remainingWords = numPalabrasNivelTotal - sequence.size();
+        for (int i = 0; i < remainingWords; i++) {
             int randomIndex = random.nextInt(palabras.size());
-            String randomWord = (String) palabras.get(randomIndex);
+            String randomWord = palabras.get(randomIndex);
             wordListToGuess.add(randomWord);
         }
         return wordListToGuess;
