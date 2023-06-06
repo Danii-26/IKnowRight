@@ -14,11 +14,11 @@ import java.util.Vector;
  */
 public class GUI{
     private static final int tiempoDeJuego = 5000; // Tiempo de cada palabra
-    private static final int tiempoDeRespuesta = 7000; // Tiempo de respuesta
+    private static final int tiempoDeRespuesta = 7000; //Tiempo de respuesta
 
-    private static final List<String> palabras = new Vector<>(); // Vector de palabras
+    private static final List<String> palabras = new Vector<>(); //Lista de palabras
     private static final Random random = new Random();
-    private static int nivel = 1; // Nivel actual
+    private static int nivel = 1; // Nivel inicial
 
     //Reglas tabla de niveles
     private static final int[] numPalabrasNivel = {10, 20, 25, 30, 35, 40, 50, 60, 70, 100};
@@ -170,7 +170,7 @@ public class GUI{
             if (os.contains("Windows")) {
                 new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
             } else {
-                Runtime.getRuntime().exec("clear");
+                Runtime.getRuntime().exec("/clear");
                 System.out.print("\033[H\033[2J");
                 System.out.flush();
             }
